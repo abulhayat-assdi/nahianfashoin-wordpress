@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f2e8;
+  --foreground: #171717;
+  
+  --color-brand-green: #004225;
+  --color-brand-gold: #b78b3b;
+  --color-brand-cream: #f7f2e8;
+  --color-brand-brown: #4A3728;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-brand-green: var(--color-brand-green);
+  --color-brand-gold: var(--color-brand-gold);
+  --color-brand-cream: var(--color-brand-cream);
+  --color-brand-brown: var(--color-brand-brown);
+
+  --font-heading: Georgia, "Times New Roman", serif;
+  --font-body: "Trebuchet MS", Arial, system-ui, sans-serif;
+  --font-sans: "Trebuchet MS", Arial, system-ui, sans-serif;
+
+  --animate-marquee: marquee 34s linear infinite;
+  
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+html {
+  /* Removed scroll-behavior: smooth to fix Next.js scroll restoration issues */
+}
+
+button,
+a,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.section-eyebrow {
+  @apply font-body text-[14px] font-bold uppercase tracking-[0.18em] text-black;
+}
+
+.section-title {
+  @apply font-heading text-brand-gold text-[42px] md:text-[54px] leading-none font-medium tracking-normal;
+}
+
+/* Primary CTA Button */
+@layer components {
+  .btn-primary {
+    @apply bg-brand-green text-white px-[48px] py-[18px] rounded-none font-body text-[16px] font-bold uppercase border-none cursor-pointer transition-all duration-200;
+  }
+  .btn-primary:hover {
+    @apply bg-[#00321A] shadow-md;
+  }
+  
+  .btn-gold {
+    @apply bg-brand-gold text-white px-[30px] py-[12px] rounded-[2px] font-body text-[14px] font-semibold tracking-[0.08em] transition-all duration-200;
+  }
+  .btn-gold:hover {
+    @apply opacity-90 shadow-md;
+  }
+  
+  .btn-outline {
+    @apply bg-transparent text-brand-green border-[1.5px] border-brand-green px-[30px] py-[12px] rounded-none font-body text-[14px] font-semibold tracking-[0.08em] uppercase transition-all duration-200;
+  }
+  .btn-outline:hover {
+    @apply bg-[#00321A] text-white border-[#00321A];
+  }
+}
+
+.arched {
+  border-radius: 50% 50% 0 0 / 42% 42% 0 0;
+}
+
+/* Product description rich text rendering */
+.product-description ul { list-style: disc; padding-left: 1.4em; margin: 6px 0; }
+.product-description ol { list-style: decimal; padding-left: 1.4em; margin: 6px 0; }
+.product-description li { margin-bottom: 4px; }
+.product-description p { margin: 0 0 8px 0; }
+.product-description p:last-child { margin-bottom: 0; }
+.product-description strong { font-weight: 700; }
+.product-description em { font-style: italic; }
+.product-description s { text-decoration: line-through; }
+.product-description mark { padding: 1px 3px; border-radius: 2px; }

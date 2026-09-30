@@ -1,0 +1,41 @@
+services:
+
+  db:
+    image: postgres:15-alpine
+    container_name: nahian-fashion-db
+    restart: always
+    env_file:
+      - .env.production
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - nahian-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    container_name: nahian-fashion-app
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production
+    volumes:
+      # Logo survives container rebuilds (everything else is on R2)
+      - /var/www/nahian-fashion/uploads:/app/public/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - nahian-net
+
+networks:
+  nahian-net:
+    driver: bridge
+
+volumes:
+  pgdata:

@@ -1,0 +1,234 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  phone         String?
+  address       String?
+  role          String   @default("customer")
+  password_hash String?
+  created_at    DateTime @default(now())
+  orders        Order[]
+
+  @@map("customers")
+}
+
+model Product {
+  id             String          @id @default(uuid())
+  slug           String          @unique
+  name           String
+  detail         String?
+  description    String?
+  price          String
+  original_price String?
+  discount       String?
+  per_cup_price  String?
+  packaging      String?
+  media_urls     Json            @default("[]")
+  category       String
+  is_available   Boolean         @default(true)
+  is_featured    Boolean         @default(false)
+  is_gift        Boolean         @default(false)
+  faqs           Json            @default("[]")
+  steeping       Json?
+  created_at     DateTime        @default(now())
+  reviews        ProductReview[]
+
+  @@map("products")
+}
+
+model ProductReview {
+  id         String   @id @default(uuid())
+  product_id String
+  name       String
+  rating     Int
+  comment    String
+  created_at DateTime @default(now())
+  product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@map("product_reviews")
+}
+
+model Order {
+  id             String      @id @default(uuid())
+  order_id       String      @unique
+  user_id        String?
+  customer_name  String
+  phone          String
+  address        String
+  subtotal       Decimal
+  shipping       Decimal
+  discount       Decimal     @default(0)
+  total          Decimal
+  payment_method String
+  amount_paid    Decimal     @default(0)
+  status         String      @default("pending")
+  placed_at      DateTime    @default(now())
+  customer       Customer?   @relation(fields: [user_id], references: [id])
+  items          OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String  @id @default(uuid())
+  order_id     String
+  product_id   String
+  product_name String
+  price        Decimal
+  quantity     Int
+  image_url    String?
+  order        Order   @relation(fields: [order_id], references: [order_id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model Category {
+  id            String   @id @default(uuid())
+  name          String
+  slug          String?
+  image_url     String?
+  is_active     Boolean  @default(true)
+  display_order Int      @default(0)
+  created_at    DateTime @default(now())
+
+  @@map("categories")
+}
+
+model Page {
+  id           String   @id @default(uuid())
+  slug         String   @unique
+  title        String
+  section      String
+  content      String?
+  is_published Boolean  @default(false)
+  header_image String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now()) @updatedAt
+
+  @@map("pages")
+}
+
+model BlogComment {
+  id          String   @id @default(uuid())
+  blog_slug   String
+  author_name String
+  content     String
+  admin_reply String?
+  created_at  DateTime @default(now())
+
+  @@map("blog_comments")
+}
+
+model Testimonial {
+  id            String   @id @default(uuid())
+  type          String   @default("review")
+  name          String?
+  image_url     String?
+  quote         String?
+  title         String?
+  display_order Int      @default(0)
+  created_at    DateTime @default(now())
+
+  @@map("testimonials")
+}
+
+model BrandStory {
+  id                String  @id @default("main")
+  eyebrow           String?
+  title             String?
+  body              String?
+  body2             String?
+  cta_text          String?
+  founder_name      String?
+  founder_title     String?
+  founder_signature String?
+  founder_image     String?
+  care_eyebrow      String?
+  care_title        String?
+  impact1_title     String?
+  impact1_body      String?
+  impact2_title     String?
+  impact2_body      String?
+  impact3_title     String?
+  impact3_body      String?
+  farmers_image     String?
+
+  @@map("brand_story")
+}
+
+model Coupon {
+  id         String    @id @default(uuid())
+  code       String    @unique
+  type       String
+  value      Decimal
+  min_order  Decimal?
+  max_uses   Int       @default(100)
+  used_count Int       @default(0)
+  is_active  Boolean   @default(true)
+  expires_at DateTime?
+  created_at DateTime  @default(now())
+
+  @@map("coupons")
+}
+
+model FooterConfig {
+  id         Int     @id @default(1)
+  columns    Json?
+  privacy    String?
+  terms      String?
+  newsletter String?
+  social     String?
+  ticker     Json?
+
+  @@map("footer_config")
+}
+
+model HomeConfig {
+  id           Int      @id @default(1)
+  banners      Json?
+  ticker_items Json?
+  data         Json?
+  updated_at   DateTime @default(now()) @updatedAt
+
+  @@map("home_config")
+}
+
+model SiteSettings {
+  id                    Int     @id @default(1)
+  site_name             String?
+  site_tagline          String?
+  meta_description      String?
+  contact_email         String?
+  whatsapp_number       String?
+  phone_number          String?
+  instagram_url         String?
+  facebook_url          String?
+  currency_code         String? @default("BDT")
+  currency_symbol       String? @default("Tk")
+  footer_social_heading String?
+  blog_hero_image       String?
+
+  @@map("site_settings")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  email      String
+  type       String   // "customer" or "admin"
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@map("password_reset_tokens")
+}

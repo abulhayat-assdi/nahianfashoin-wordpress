@@ -5,8 +5,6 @@
 defined('ABSPATH') || exit;
 $nav_cats = nf_header_categories();
 $logo     = nf_logo_url();
-$user_in  = is_user_logged_in();
-$acct_url = $user_in ? nf_url('/account-order') : nf_url('/account-register');
 $link_cls = 'px-3 py-1.5 text-[14px] font-medium text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors';
 $mlink    = 'px-4 py-3 text-[15px] font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors';
 ?><!doctype html>
@@ -47,7 +45,6 @@ $mlink    = 'px-4 py-3 text-[15px] font-medium text-white/80 hover:text-white ho
 
     <div class="flex items-center gap-1 md:gap-2">
       <button type="button" data-nf="search-open" class="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors" aria-label="Search"><?php echo nf_icon('search', 20); ?></button>
-      <a href="<?php echo esc_url($acct_url); ?>" class="hidden md:flex p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors" aria-label="Account"><?php echo nf_icon('user', 20); ?></a>
       <button type="button" data-nf="cart-open" class="relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors" aria-label="Cart">
         <?php echo nf_icon('shopping-bag', 20); ?>
         <span data-nf="cart-badge" hidden class="absolute -right-0.5 -top-0.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white leading-none"></span>
@@ -71,8 +68,6 @@ $mlink    = 'px-4 py-3 text-[15px] font-medium text-white/80 hover:text-white ho
       <?php endforeach; ?>
       <a href="<?php echo esc_url(nf_url('/collections/all')); ?>" data-nf="menu-close" class="<?php echo $mlink; ?>">All Products</a>
       <a href="<?php echo esc_url(nf_page_url('contact')); ?>" data-nf="menu-close" class="<?php echo $mlink; ?>">Contact</a>
-      <div class="my-2 border-t border-white/10"></div>
-      <a href="<?php echo esc_url($acct_url); ?>" data-nf="menu-close" class="flex items-center gap-3 <?php echo $mlink; ?>"><?php echo nf_icon('user', 18); ?> <?php echo $user_in ? 'My Account' : 'Login / Register'; ?></a>
     </div>
   </nav>
 </div>

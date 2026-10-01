@@ -5,16 +5,10 @@
  */
 defined('ABSPATH') || exit;
 nf_set_seo(['title' => 'Checkout | Nahian Fashion', 'noindex' => true, 'follow' => false]);
-$user = null;
-if (is_user_logged_in()) {
-    $u = wp_get_current_user();
-    $user = nf_customer_profile($u->ID);
-}
 $config = [
     'rest'     => esc_url_raw(rest_url('nf/v1/')),
     'nonce'    => wp_create_nonce('wp_rest'),
     'home'     => untrailingslashit(home_url()),
-    'user'     => $user,
     'whatsapp' => nf_whatsapp_url(nf_settings()['whatsapp_number']),
     'icons'    => nf_icon_paths(),
 ];

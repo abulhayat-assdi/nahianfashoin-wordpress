@@ -357,7 +357,7 @@
     fetch(CFG.rest + 'orders/create', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': CFG.nonce }, credentials: 'same-origin',
       body: JSON.stringify({
-        customerId: CFG.user ? CFG.user.id : null, name: state.form.name, phone: phone, address: state.form.address,
+        name: state.form.name, phone: phone, address: state.form.address,
         items: state.cartItems.map(function (item) {
           var colorIdx = (state.itemSelections[item.id] || {}).colorIdx;
           colorIdx = colorIdx === undefined ? null : colorIdx;
@@ -412,14 +412,11 @@
   }
 
   function load() {
-    // saved info for repeat customers, then profile of the logged-in customer
+    // saved info for repeat customers
     try {
       var info = JSON.parse(localStorage.getItem('sv_checkout_info') || 'null');
       if (info) { state.form.name = info.name || state.form.name; state.form.phone = info.phone || state.form.phone; state.form.address = info.address || state.form.address; }
     } catch (e) { /* ignore */ }
-    if (CFG.user) {
-      state.form.name = CFG.user.name || state.form.name; state.form.phone = CFG.user.phone || state.form.phone; state.form.address = CFG.user.address || state.form.address;
-    }
 
     var saved = null, buyNow = null;
     try { saved = localStorage.getItem('cart'); buyNow = JSON.parse(localStorage.getItem('sv_buy_now_item') || 'null'); } catch (e) { /* ignore */ }

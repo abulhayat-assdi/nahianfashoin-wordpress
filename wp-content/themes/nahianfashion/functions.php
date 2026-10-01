@@ -37,7 +37,6 @@ add_action('wp_enqueue_scripts', static function () {
         'home'    => untrailingslashit(home_url()),
         'rest'    => esc_url_raw(rest_url('nf/v1/')),
         'nonce'   => wp_create_nonce('wp_rest'),
-        'loggedIn' => is_user_logged_in(),
     ]);
     // WooCommerce styles would alter the original design; the theme ships its own.
     foreach (['wc-add-to-cart', 'woocommerce', 'jquery-blockui', 'js-cookie', 'sourcebuster-js', 'wc-order-attribution', 'wc-cart-fragments'] as $handle) {

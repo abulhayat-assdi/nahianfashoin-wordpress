@@ -156,15 +156,3 @@ function nf_page_url(string $slug): string {
 function nf_gtm_id(): string {
     return (string) apply_filters('nf_gtm_id', get_option('nf_gtm_id', NF_GTM_ID_DEFAULT));
 }
-
-/** Checkout/profile data for a logged-in customer (WordPress user + billing meta). */
-function nf_customer_profile(int $user_id): array {
-    $u = get_userdata($user_id);
-    return [
-        'id'      => (string) $user_id,
-        'name'    => $u ? $u->display_name : '',
-        'email'   => $u ? $u->user_email : '',
-        'phone'   => (string) get_user_meta($user_id, 'billing_phone', true),
-        'address' => (string) get_user_meta($user_id, 'billing_address_1', true),
-    ];
-}

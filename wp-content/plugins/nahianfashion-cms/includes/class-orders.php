@@ -151,7 +151,7 @@ class NF_Orders {
      * Builds the WooCommerce order. $lines: [['product_id','name','price'(float),'quantity','image','size','color'] ...]
      */
     private static function build_order(string $public_id, string $status, array $data, array $lines, float $subtotal, float $shipping, float $discount, ?string $coupon_code): WC_Order {
-        $order = wc_create_order(['status' => self::wc_status($status), 'customer_id' => get_current_user_id()]);
+        $order = wc_create_order(['status' => self::wc_status($status), 'customer_id' => 0]);
         foreach ($lines as $l) {
             $item = new WC_Order_Item_Product();
             $product = ctype_digit((string) $l['product_id']) ? wc_get_product((int) $l['product_id']) : null;

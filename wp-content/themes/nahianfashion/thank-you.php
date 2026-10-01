@@ -12,9 +12,7 @@ if ($arg !== '' && strpos($arg, 'DRAFT-') !== 0 && class_exists('NF_Orders')) {
     $wc = NF_Orders::find_by_public_id($arg);
     if ($wc) {
         $data = NF_Orders::to_array($wc);
-        $owner = (int) $wc->get_customer_id();
-        $allowed = !$owner || (is_user_logged_in() && (get_current_user_id() === $owner || current_user_can('manage_woocommerce')));
-        if ($allowed && !in_array($data['status'], ['incomplete', 'failed', 'cancelled'], true)) {
+        if (!in_array($data['status'], ['incomplete', 'failed', 'cancelled'], true)) {
             $order = $data;
         }
     }
@@ -38,7 +36,6 @@ if ($arg === '') : // /thank-you: send the browser to the last placed order, els
 <?php else :
     $is_online = $order['payment_method'] !== 'cash';
     $item_count = array_sum(array_column($order['items'], 'quantity'));
-    $logged = is_user_logged_in();
     $purchase = [
         'orderId' => $order['order_id'], 'total' => $order['total'], 'shipping' => $order['shipping'], 'discount' => $order['discount'],
         'items' => array_map(static fn($i) => [
@@ -146,10 +143,6 @@ if ($arg === '') : // /thank-you: send the browser to the last placed order, els
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-[#d1fae5] shadow-sm p-6 text-center">
-      <p class="text-[14px] text-[#555] mb-3">To track your order status and delivery updates, please log in or create an account.</p>
-      <a href="<?php echo esc_url(nf_url($logged ? '/account-order' : '/account-register')); ?>" class="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg text-[13px] font-bold uppercase tracking-wider transition-colors"><?php echo $logged ? 'View My Orders' : 'Sign Up to Track Order'; ?></a>
-    </div>
   </main>
 </div>
 <?php

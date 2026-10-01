@@ -250,10 +250,11 @@
     window.addEventListener('cart:add', function (e) {
       var item = e.detail;
       if (item && item.id) {
+        var qty = item.quantity || 1;
         var exists = cartItems.filter(function (i) { return i.id === item.id; })[0];
         cartItems = exists
-          ? cartItems.map(function (i) { return i.id === item.id ? Object.assign({}, i, { quantity: (i.quantity || 1) + 1 }) : i; })
-          : cartItems.concat([Object.assign({}, item, { quantity: 1 })]);
+          ? cartItems.map(function (i) { return i.id === item.id ? Object.assign({}, i, item, { quantity: (i.quantity || 1) + qty }) : i; })
+          : cartItems.concat([Object.assign({}, item, { quantity: qty })]);
         saveCart();
         if (!cartOpen) { cartOpenedViaHash = true; history.pushState({ cartOpen: true }, '', '#cart'); }
         setCart(true);

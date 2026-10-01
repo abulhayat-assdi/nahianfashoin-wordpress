@@ -4,6 +4,12 @@
  */
 defined('ABSPATH') || exit;
 
+if (!empty($GLOBALS['nf_bare'])) {
+    wp_footer();
+    echo "</body>\n</html>";
+    return;
+}
+
 $s        = nf_settings();
 $config   = nf_footer_config();
 $logo     = nf_logo_url();

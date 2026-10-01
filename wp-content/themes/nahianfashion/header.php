@@ -18,6 +18,7 @@ $mlink    = 'px-4 py-3 text-[15px] font-medium text-white/80 hover:text-white ho
 </head>
 <body <?php body_class('bg-white text-foreground antialiased min-h-screen flex flex-col'); ?> style="font-family: 'Poppins', 'Hind Siliguri', system-ui, sans-serif;" data-nf-path="<?php echo esc_attr(nf_current_path()); ?>">
 <?php wp_body_open(); ?>
+<?php if (!empty($GLOBALS['nf_bare'])) { return; } ?>
 
 <!-- STICKY HEADER -->
 <header id="nf-header" class="sticky top-0 z-[100] w-full transition-all duration-300 bg-[#1a3c2e]">

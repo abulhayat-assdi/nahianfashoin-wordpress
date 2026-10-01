@@ -8,6 +8,9 @@ define('NF_THEME_VERSION', wp_get_theme()->get('Version') ?: '1.0.0');
 
 require_once get_template_directory() . '/inc/icons.php';
 require_once get_template_directory() . '/inc/helpers.php';
+require_once get_template_directory() . '/inc/products.php';
+require_once get_template_directory() . '/inc/seo.php';
+require_once get_template_directory() . '/inc/routes.php';
 
 add_action('after_setup_theme', static function () {
     add_theme_support('title-tag');
@@ -28,6 +31,8 @@ add_action('wp_enqueue_scripts', static function () {
     $js  = get_theme_file_path('assets/js/app.js');
     wp_enqueue_style('nf-app', get_theme_file_uri('assets/css/app.css'), [], file_exists($css) ? filemtime($css) : NF_THEME_VERSION);
     wp_enqueue_script('nf-app', get_theme_file_uri('assets/js/app.js'), [], file_exists($js) ? filemtime($js) : NF_THEME_VERSION, ['in_footer' => true, 'strategy' => 'defer']);
+    $shop = get_theme_file_path('assets/js/shop.js');
+    wp_enqueue_script('nf-shop', get_theme_file_uri('assets/js/shop.js'), ['nf-app'], file_exists($shop) ? filemtime($shop) : NF_THEME_VERSION, ['in_footer' => true, 'strategy' => 'defer']);
     wp_localize_script('nf-app', 'NF', [
         'home'    => untrailingslashit(home_url()),
         'rest'    => esc_url_raw(rest_url('nf/v1/')),

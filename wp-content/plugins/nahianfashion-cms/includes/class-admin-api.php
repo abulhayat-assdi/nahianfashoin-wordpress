@@ -56,7 +56,7 @@ class NF_Admin_API {
     /* ───────────────────────── helpers ───────────────────────── */
 
     private static function ok($data = null, int $status = 200, array $extra = []): WP_REST_Response {
-        return new WP_REST_Response(array_merge($data === null ? [] : ['data' => $data], $extra), $status);
+        return new WP_REST_Response(array_merge(['data' => $data], $extra), $status);
     }
 
     private static function err(string $m, int $status = 400): WP_REST_Response {

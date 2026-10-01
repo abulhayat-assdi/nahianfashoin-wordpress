@@ -150,8 +150,14 @@ class NF_Orders {
     /**
      * Builds the WooCommerce order. $lines: [['product_id','name','price'(float),'quantity','image','size','color'] ...]
      */
-    private static function build_order(string $public_id, string $status, array $data, array $lines, float $subtotal, float $shipping, float $discount, ?string $coupon_code): WC_Order {
-        $order = wc_create_order(['status' => self::wc_status($status), 'customer_id' => 0]);
+    public static function build_order(string $public_id, string $status, array $data, array $lines, float $subtotal, float $shipping, float $discount, ?string $coupon_code, array $extra = [], ?WC_Order $existing = null): WC_Order {
+        if ($existing) {
+            $order = $existing;
+            $order->remove_order_items();
+            $order->set_status(self::wc_status($status));
+        } else {
+            $order = wc_create_order(['status' => self::wc_status($status), 'customer_id' => 0]);
+        }
         foreach ($lines as $l) {
             $item = new WC_Order_Item_Product();
             $product = ctype_digit((string) $l['product_id']) ? wc_get_product((int) $l['product_id']) : null;
@@ -199,9 +205,24 @@ class NF_Orders {
         $order->update_meta_data('_nf_subtotal', $subtotal);
         $order->update_meta_data('_nf_shipping', $shipping);
         $order->update_meta_data('_nf_discount', $discount);
-        $order->update_meta_data('_nf_payment_method', 'cash');
-        $order->update_meta_data('_nf_amount_paid', 0);
+        $order->update_meta_data('_nf_payment_method', $extra['payment_method'] ?? 'cash');
+        $order->update_meta_data('_nf_amount_paid', $extra['amount_paid'] ?? 0);
         $order->update_meta_data('_nf_ip', $data['ip']);
+        if (isset($extra['total'])) {
+            $order->set_total((float) $extra['total']);
+        }
+        if (!empty($extra['date_created'])) {
+            $order->set_date_created($extra['date_created']);
+        }
+        if (!empty($extra['consignment_id'])) {
+            $order->update_meta_data('_nf_consignment_id', (string) $extra['consignment_id']);
+        }
+        if (!empty($extra['capi_sent'])) {
+            $order->update_meta_data('_nf_capi_sent', 1);
+        }
+        if (!empty($extra['created_via'])) {
+            $order->set_created_via($extra['created_via']);
+        }
         if (!empty($data['draft_session'])) {
             $order->update_meta_data('_nf_draft_session_id', $data['draft_session']);
         }
@@ -342,6 +363,9 @@ class NF_Orders {
 
     public static function draft(WP_REST_Request $req): WP_REST_Response {
         $b = $req->get_json_params() ?: [];
+        if (!NF_REST::rate_limit('draft:' . NF_REST::client_ip(), 120, HOUR_IN_SECONDS)) {
+            return new WP_REST_Response(['error' => 'Too many requests'], 429);
+        }
         $session = $b['sessionId'] ?? null;
         if (!$session || !is_string($session)) {
             return new WP_REST_Response(['error' => 'Session ID required'], 400);

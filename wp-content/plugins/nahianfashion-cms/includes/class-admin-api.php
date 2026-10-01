@@ -724,6 +724,9 @@ class NF_Admin_API {
         $slug = (string) $req->get_param('slug');
         if ($slug !== '') {
             $p = get_page_by_path($slug, OBJECT, 'page');
+            if ($p && $p->post_status !== 'publish' && !current_user_can('manage_woocommerce')) {
+                $p = null; // drafts are never public
+            }
             return self::ok($p ? self::page_row($p) : null);
         }
         $args = ['post_type' => 'page', 'post_status' => ['publish', 'draft', 'private'], 'posts_per_page' => -1, 'orderby' => 'date', 'order' => 'DESC', 'meta_key' => 'nf_section'];

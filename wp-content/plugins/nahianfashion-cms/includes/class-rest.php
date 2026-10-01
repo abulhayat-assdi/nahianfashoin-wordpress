@@ -45,16 +45,27 @@ class NF_REST {
         return new WP_REST_Response($r['body'], $r['status']);
     }
 
+    /**
+     * Visitor IP for rate limits and the blocklist. Forwarded headers (X-Forwarded-For, CF-Connecting-IP ...) are only
+     * trusted when the request comes from a reverse proxy on a private network (Coolify/Traefik, Docker) or when the site
+     * owner opts in with define('NF_TRUST_PROXY_HEADERS', true) (e.g. behind Cloudflare on cPanel); otherwise a visitor
+     * could spoof them to dodge the limits.
+     */
     public static function client_ip(): string {
-        foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR'] as $k) {
-            if (!empty($_SERVER[$k])) {
-                $ip = trim(explode(',', (string) $_SERVER[$k])[0]);
-                if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                    return $ip;
+        $remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        $private = $remote !== '' && filter_var($remote, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
+        $trust = $private || (defined('NF_TRUST_PROXY_HEADERS') && NF_TRUST_PROXY_HEADERS) || apply_filters('nf_trust_proxy_headers', false);
+        if ($trust) {
+            foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP'] as $k) {
+                if (!empty($_SERVER[$k])) {
+                    $ip = trim(explode(',', (string) $_SERVER[$k])[0]);
+                    if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                        return $ip;
+                    }
                 }
             }
         }
-        return 'unknown';
+        return filter_var($remote, FILTER_VALIDATE_IP) ? $remote : 'unknown';
     }
 
     /** Fixed-window limiter backed by transients. Returns true when the request is allowed. */

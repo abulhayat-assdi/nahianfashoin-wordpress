@@ -1,0 +1,10 @@
+.git
+reference-nextjs
+reference-nextjs-latest
+design-screenshots
+data
+dist
+tools
+**/node_modules
+wp-content/themes/nahianfashion/_src
+wp-content/plugins/nahianfashion-cms/admin-src

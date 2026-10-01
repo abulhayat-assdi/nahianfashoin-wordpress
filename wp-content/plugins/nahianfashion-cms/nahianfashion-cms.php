@@ -5,6 +5,7 @@
  * Version: 1.0.0
  * Requires at least: 6.4
  * Requires PHP: 8.1
+ * Requires Plugins: woocommerce
  * Author: Nahian Fashion
  * Text Domain: nahianfashion-cms
  */
@@ -23,7 +24,10 @@ require_once NF_CMS_DIR . 'includes/class-coupons.php';
 require_once NF_CMS_DIR . 'includes/class-orders.php';
 require_once NF_CMS_DIR . 'includes/class-steadfast.php';
 require_once NF_CMS_DIR . 'includes/class-products.php';
+require_once NF_CMS_DIR . 'includes/class-setup.php';
+require_once NF_CMS_DIR . 'includes/class-hardening.php';
 require_once NF_CMS_DIR . 'includes/class-importer.php';
+require_once NF_CMS_DIR . 'includes/class-import-admin.php';
 require_once NF_CMS_DIR . 'includes/class-rest.php';
 require_once NF_CMS_DIR . 'includes/class-admin-api.php';
 require_once NF_CMS_DIR . 'includes/class-admin.php';
@@ -33,6 +37,13 @@ NF_Orders::init();
 NF_REST::init();
 NF_Admin_API::init();
 NF_Admin::init();
+NF_Hardening::init();
+add_action('admin_notices', static function () {
+    if (!class_exists('WooCommerce') && current_user_can('activate_plugins')) {
+        echo '<div class="notice notice-error"><p><strong>Nahian Fashion CMS</strong> needs the WooCommerce plugin to be installed and active.</p></div>';
+    }
+});
+NF_Import_Admin::init();
 
 if (defined('WP_CLI') && WP_CLI) {
     require_once NF_CMS_DIR . 'includes/class-cli.php';
@@ -42,12 +53,5 @@ if (defined('WP_CLI') && WP_CLI) {
 /** URL structure of the original storefront: /products/<slug>, /collections/<category>. */
 register_activation_hook(__FILE__, static function () {
     NF_DB::install();
-    $permalinks = (array) get_option('woocommerce_permalinks', []);
-    $permalinks['product_base']  = 'products';
-    $permalinks['category_base'] = 'collections';
-    update_option('woocommerce_permalinks', $permalinks);
-    // The original storefront served URLs without a trailing slash.
-    global $wp_rewrite;
-    $wp_rewrite->set_permalink_structure('/%postname%');
-    flush_rewrite_rules();
+    NF_Setup::run();
 });

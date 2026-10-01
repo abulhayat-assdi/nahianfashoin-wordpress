@@ -1,0 +1,56 @@
+# Coolify: New Resource -> Docker Compose (build from this repository), compose file = deploy/coolify/docker-compose.yml.
+# Set the variables below in Coolify's "Environment Variables" tab (secrets go there, never into git).
+services:
+  wordpress:
+    build:
+      context: ../..
+      dockerfile: deploy/coolify/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: ${DB_NAME:-nahianfashion}
+      WORDPRESS_DB_USER: ${DB_USER:-nahianfashion}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+      WORDPRESS_CONFIG_EXTRA: |
+        if (isset($$_SERVER['HTTP_X_FORWARDED_PROTO']) && $$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') { $$_SERVER['HTTPS'] = 'on'; }
+        define('DISALLOW_FILE_EDIT', true);
+        define('WP_POST_REVISIONS', 5);
+      # one-time unattended install (set NF_AUTO_INSTALL=1 for the first deploy, then you may remove it)
+      NF_AUTO_INSTALL: ${NF_AUTO_INSTALL:-0}
+      NF_SITE_URL: ${NF_SITE_URL:-}
+      NF_ADMIN_USER: ${NF_ADMIN_USER:-}
+      NF_ADMIN_PASSWORD: ${NF_ADMIN_PASSWORD:-}
+      NF_ADMIN_EMAIL: ${NF_ADMIN_EMAIL:-}
+      # integrations (optional; read by the plugin from the environment)
+      STEADFAST_API_KEY: ${STEADFAST_API_KEY:-}
+      STEADFAST_SECRET_KEY: ${STEADFAST_SECRET_KEY:-}
+      FB_PIXEL_ID: ${FB_PIXEL_ID:-}
+      FB_CAPI_ACCESS_TOKEN: ${FB_CAPI_ACCESS_TOKEN:-}
+    volumes:
+      - wp_data:/var/www/html
+    ports:
+      - "80"
+
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-nahianfashion}
+      MARIADB_USER: ${DB_USER:-nahianfashion}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  wp_data:
+  db_data:

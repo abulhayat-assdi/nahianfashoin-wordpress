@@ -9,25 +9,33 @@ class NF_Seed_Reader {
     /** @var array<string, array<int, array<string, ?string>>> */
     private array $tables = [];
 
-    public function __construct(string $file) {
+    /** @param string[]|null $only parse just these tables (a full live dump can be large) */
+    public function __construct(string $file, ?array $only = null) {
         if (!is_readable($file)) {
             throw new RuntimeException("Seed file not readable: $file");
         }
         $h = fopen($file, 'rb');
         $cols = null;
         $name = null;
+        $skip = false;
         while (($line = fgets($h)) !== false) {
             $line = rtrim($line, "\r\n");
             if ($cols === null) {
                 if (strncmp($line, 'COPY ', 5) === 0 && preg_match('/^COPY (?:public\.)?"?(\w+)"? \(([^)]*)\) FROM stdin;$/', $line, $m)) {
                     $name = $m[1];
                     $cols = array_map('trim', explode(',', $m[2]));
-                    $this->tables[$name] = [];
+                    $skip = $only !== null && !in_array($name, $only, true);
+                    if (!$skip) {
+                        $this->tables[$name] = [];
+                    }
                 }
                 continue;
             }
             if ($line === '\\.') {
                 $cols = null;
+                continue;
+            }
+            if ($skip) {
                 continue;
             }
             $vals = explode("\t", $line);

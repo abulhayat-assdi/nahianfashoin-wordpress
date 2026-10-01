@@ -11,6 +11,19 @@ class NF_Products {
         return is_array($v) ? $v : [];
     }
 
+    /** Attachment id for a media URL without downloading anything (imported source URL or WordPress URL). */
+    public static function attachment_lookup(?string $url): int {
+        $url = trim((string) $url);
+        if ($url === '') {
+            return 0;
+        }
+        $found = get_posts([
+            'post_type' => 'attachment', 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids',
+            'meta_key' => '_nf_source_url', 'meta_value' => $url,
+        ]);
+        return $found ? (int) $found[0] : (int) attachment_url_to_postid($url);
+    }
+
     /** Attachment id for a media URL: matches imported source URLs, then WordPress URLs; external URLs are sideloaded. */
     public static function attachment_for_url(?string $url): int {
         $url = trim((string) $url);
@@ -139,7 +152,7 @@ class NF_Products {
         }
         if ($has('created_at') && $row['created_at']) {
             $ts = strtotime((string) $row['created_at']);
-            if ($ts) { $product->set_date_created(gmdate('Y-m-d H:i:s', $ts)); }
+            if ($ts) { $product->set_date_created($ts); }
         }
         $pid = $product->save();
 

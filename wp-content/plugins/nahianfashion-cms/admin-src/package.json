@@ -1,0 +1,26 @@
+{
+  "name": "nahianfashion-admin-build",
+  "private": true,
+  "description": "Optional: rebuilds ../admin/assets/admin.js and admin.css from the React sources in src/. The compiled files are committed, so servers never need this.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@tiptap/extension-color": "^3.23.4",
+    "@tiptap/extension-highlight": "^3.23.4",
+    "@tiptap/extension-link": "^3.23.4",
+    "@tiptap/extension-text-style": "^3.23.4",
+    "@tiptap/pm": "^3.23.4",
+    "@tiptap/react": "^3.23.4",
+    "@tiptap/starter-kit": "^3.23.4",
+    "lucide-react": "1.14.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hot-toast": "^2.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.2.4",
+    "esbuild": "^0.25.0",
+    "tailwindcss": "4.2.4"
+  }
+}

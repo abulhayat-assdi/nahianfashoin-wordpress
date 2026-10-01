@@ -180,15 +180,10 @@ class NF_Importer {
         return gmdate('Y-m-d H:i:s', $t ?: time());
     }
 
-    /** @param array<string,int> $cat_map legacy category id => term id (unused; products reference categories by name) */
     public function products(): void {
         if (!class_exists('WC_Product_Simple')) {
             $this->say('WooCommerce is not active: skipping products.');
             return;
-        }
-        $terms_by_name = [];
-        foreach (nf_import_categories() as $t) {
-            $terms_by_name[strtolower(trim($t->name))] = (int) $t->term_id;
         }
         $n = 0;
         foreach ($this->seed->table('products') as $row) {
@@ -196,68 +191,22 @@ class NF_Importer {
                 'post_type' => 'product', 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids',
                 'meta_key' => '_nf_legacy_id', 'meta_value' => $row['id'],
             ]);
-            $product = $found ? wc_get_product((int) $found[0]) : new WC_Product_Simple();
-            $product->set_name((string) $row['name']);
-            $product->set_slug((string) $row['slug']);
-            $product->set_status('publish');
-            $product->set_description((string) $row['description']);
-            $product->set_catalog_visibility('visible');
-            $price = nf_import_parse_price($row['price']);
-            $orig  = nf_import_parse_price($row['original_price']);
-            if ($orig > $price) {
-                $product->set_regular_price((string) $orig);
-                $product->set_sale_price((string) $price);
-            } else {
-                $product->set_regular_price((string) $price);
-                $product->set_sale_price('');
+            try {
+                NF_Products::save([
+                    'name' => $row['name'], 'slug' => $row['slug'], 'description' => (string) $row['description'],
+                    'price' => $row['price'], 'original_price' => $row['original_price'] ?? '', 'discount' => $row['discount'] ?? '',
+                    'detail' => $row['detail'] ?? '', 'video_url' => $row['video_url'] ?? '',
+                    'is_available' => NF_Seed_Reader::bool($row['is_available']), 'is_featured' => NF_Seed_Reader::bool($row['is_featured']),
+                    'is_gift' => NF_Seed_Reader::bool($row['is_gift']), 'display_order' => (int) $row['display_order'],
+                    'category' => trim((string) $row['category']), 'created_at' => gmdate('c', strtotime($row['created_at'] . ' UTC')),
+                    'media_urls' => NF_Seed_Reader::json($row['media_urls']) ?: [], 'colors' => NF_Seed_Reader::json($row['colors']) ?: [],
+                    'sizes' => NF_Seed_Reader::json($row['sizes']) ?: [], 'faqs' => NF_Seed_Reader::json($row['faqs']) ?: [],
+                    'steeping' => NF_Seed_Reader::json($row['steeping'] ?? null), '_legacy_id' => $row['id'],
+                ], $found ? (int) $found[0] : null);
+                $n++;
+            } catch (Throwable $e) {
+                $this->say("Product '{$row['name']}' failed: " . $e->getMessage());
             }
-            $product->set_manage_stock(false);
-            $product->set_stock_status(NF_Seed_Reader::bool($row['is_available']) ? 'instock' : 'outofstock');
-            $product->set_featured(NF_Seed_Reader::bool($row['is_featured']));
-            $product->set_menu_order((int) $row['display_order']);
-            $product->set_date_created(self::ts($row['created_at']));
-
-            $media = NF_Seed_Reader::json($row['media_urls']) ?: [];
-            $ids = [];
-            foreach ($media as $url) {
-                $id = NF_Media::sideload((string) $url);
-                if ($id) {
-                    $ids[] = $id;
-                }
-            }
-            $product->set_image_id($ids[0] ?? 0);
-            $product->set_gallery_image_ids(array_slice($ids, 1));
-
-            $key = strtolower(trim((string) $row['category']));
-            if (isset($terms_by_name[$key])) {
-                $product->set_category_ids([$terms_by_name[$key]]);
-            } else {
-                $this->say("Product '{$row['name']}': no category matches '{$row['category']}'.");
-            }
-            $pid = $product->save();
-
-            // Colors may be hex/CSS values or image URLs; image URLs are sideloaded and replaced by their WP URL.
-            $colors = [];
-            foreach ((NF_Seed_Reader::json($row['colors']) ?: []) as $c) {
-                if (is_string($c) && (strpos($c, 'http') === 0 || strpos($c, '/') === 0)) {
-                    $id = NF_Media::sideload($c);
-                    $colors[] = $id ? (string) wp_get_attachment_url($id) : $c;
-                } else {
-                    $colors[] = $c;
-                }
-            }
-            update_post_meta($pid, '_nf_legacy_id', $row['id']);
-            update_post_meta($pid, '_nf_price', (string) $row['price']);
-            update_post_meta($pid, '_nf_original_price', (string) ($row['original_price'] ?? ''));
-            update_post_meta($pid, '_nf_discount', (string) ($row['discount'] ?? ''));
-            update_post_meta($pid, '_nf_detail', (string) ($row['detail'] ?? ''));
-            update_post_meta($pid, '_nf_media_ids', wp_json_encode($ids));
-            update_post_meta($pid, '_nf_colors', wp_json_encode($colors));
-            update_post_meta($pid, '_nf_sizes', wp_json_encode(NF_Seed_Reader::json($row['sizes']) ?: []));
-            update_post_meta($pid, '_nf_faqs', wp_json_encode(NF_Seed_Reader::json($row['faqs']) ?: []));
-            update_post_meta($pid, '_nf_video_url', (string) ($row['video_url'] ?? ''));
-            update_post_meta($pid, '_nf_is_gift', NF_Seed_Reader::bool($row['is_gift']) ? 1 : 0);
-            $n++;
         }
         $this->say("$n products imported.");
     }
@@ -317,7 +266,7 @@ class NF_Importer {
         update_option('nf_home_config', [
             'banners'      => $banners,
             'ticker_items' => NF_Seed_Reader::json($row['ticker_items']) ?: [],
-            'hero_text'    => $data['hero_text'] ?? [],
+            'data'         => $data,
         ], false);
         $this->say(sprintf('Home config imported (%d banners).', count($banners)));
     }

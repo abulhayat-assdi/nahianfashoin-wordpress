@@ -22,12 +22,17 @@ require_once NF_CMS_DIR . 'includes/class-capi.php';
 require_once NF_CMS_DIR . 'includes/class-coupons.php';
 require_once NF_CMS_DIR . 'includes/class-orders.php';
 require_once NF_CMS_DIR . 'includes/class-steadfast.php';
+require_once NF_CMS_DIR . 'includes/class-products.php';
 require_once NF_CMS_DIR . 'includes/class-importer.php';
 require_once NF_CMS_DIR . 'includes/class-rest.php';
+require_once NF_CMS_DIR . 'includes/class-admin-api.php';
+require_once NF_CMS_DIR . 'includes/class-admin.php';
 
 NF_DB::init();
 NF_Orders::init();
 NF_REST::init();
+NF_Admin_API::init();
+NF_Admin::init();
 
 if (defined('WP_CLI') && WP_CLI) {
     require_once NF_CMS_DIR . 'includes/class-cli.php';

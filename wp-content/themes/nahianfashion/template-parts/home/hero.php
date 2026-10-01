@@ -2,7 +2,7 @@
 defined('ABSPATH') || exit;
 $cfg     = nf_home_config();
 $banners = array_values(array_filter((array) ($cfg['banners'] ?? []), static fn($b) => !empty($b['image_id'])));
-$text    = (array) ($cfg['hero_text'] ?? []);
+$text    = (array) ($cfg['data']['hero_text'] ?? $cfg['hero_text'] ?? []);
 $default_link = !empty($text['btn_link']) ? $text['btn_link'] : '/collections/all';
 $href = static fn($l) => preg_match('#^https?://#i', (string) $l) ? $l : nf_url($l);
 $has_text = !empty($text['eyebrow']) || !empty($text['title']) || !empty($text['subtitle']) || !empty($text['btn_text']);

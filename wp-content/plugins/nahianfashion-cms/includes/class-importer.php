@@ -125,6 +125,27 @@ class NF_Importer {
         }
         $this->say("$n pages imported.");
     }
+    public function coupons(): void {
+        $n = 0;
+        foreach ($this->seed->table('coupons') as $row) {
+            $code = strtoupper(trim((string) $row['code']));
+            $existing = get_posts(['post_type' => 'shop_coupon', 'post_status' => 'any', 'posts_per_page' => 1, 'title' => $code, 'fields' => 'ids']);
+            $id = $existing ? (int) $existing[0] : wp_insert_post([
+                'post_type' => 'shop_coupon', 'post_title' => $code, 'post_status' => 'publish', 'post_excerpt' => '',
+            ]);
+            wp_update_post(['ID' => $id, 'post_status' => NF_Seed_Reader::bool($row['is_active']) ? 'publish' : 'draft']);
+            update_post_meta($id, 'discount_type', $row['type'] === 'percent' ? 'percent' : 'fixed_cart');
+            update_post_meta($id, 'coupon_amount', (string) (float) $row['value']);
+            update_post_meta($id, 'minimum_amount', $row['min_order'] !== null ? (string) (float) $row['min_order'] : '');
+            update_post_meta($id, 'usage_limit', (int) $row['max_uses']);
+            update_post_meta($id, 'usage_count', (int) $row['used_count']);
+            update_post_meta($id, 'date_expires', $row['expires_at'] ? strtotime($row['expires_at'] . ' UTC') : '');
+            update_post_meta($id, '_nf_legacy_id', $row['id']);
+            $n++;
+        }
+        $this->say("$n coupons imported.");
+    }
+
     private static function ts(?string $pg): string {
         $t = $pg ? strtotime($pg . ' UTC') : false;
         return gmdate('Y-m-d H:i:s', $t ?: time());

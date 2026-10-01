@@ -40,11 +40,14 @@ add_action('wp_enqueue_scripts', static function () {
         'loggedIn' => is_user_logged_in(),
     ]);
     // WooCommerce styles would alter the original design; the theme ships its own.
+    foreach (['wc-add-to-cart', 'woocommerce', 'jquery-blockui', 'js-cookie', 'sourcebuster-js', 'wc-order-attribution', 'wc-cart-fragments'] as $handle) {
+        wp_dequeue_script($handle);
+    }
     wp_dequeue_style('wc-blocks-style');
     wp_dequeue_style('woocommerce-general');
     wp_dequeue_style('woocommerce-layout');
     wp_dequeue_style('woocommerce-smallscreen');
-}, 20);
+}, 99);
 add_filter('woocommerce_enqueue_styles', '__return_empty_array');
 
 /** Google Tag Manager, same container as the original site. */

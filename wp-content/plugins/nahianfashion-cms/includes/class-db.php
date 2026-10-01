@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
  * Schema is versioned; dbDelta runs on activation and whenever the version changes.
  */
 class NF_DB {
-    const VERSION = '1';
+    const VERSION = '2';
 
     public static function init(): void {
         add_action('plugins_loaded', [__CLASS__, 'maybe_install']);
@@ -59,6 +59,18 @@ class NF_DB {
             created_at datetime NOT NULL,
             PRIMARY KEY  (id),
             KEY type_order (type, display_order)
+        ) $charset;");
+
+        $blocked = self::table('blocked_items');
+        dbDelta("CREATE TABLE $blocked (
+            id varchar(64) NOT NULL,
+            type varchar(16) NOT NULL,
+            value varchar(191) NOT NULL,
+            reason text NULL,
+            created_at datetime NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY value (value),
+            KEY type (type)
         ) $charset;");
 
         update_option('nf_db_version', self::VERSION, false);

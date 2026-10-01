@@ -13,6 +13,13 @@ class NF_REST {
             'callback'            => [__CLASS__, 'products'],
             'permission_callback' => '__return_true',
         ]);
+        register_rest_route('nf/v1', '/orders/create', ['methods' => 'POST', 'callback' => ['NF_Orders', 'create'], 'permission_callback' => '__return_true']);
+        register_rest_route('nf/v1', '/orders/draft', [
+            ['methods' => 'POST', 'callback' => ['NF_Orders', 'draft'], 'permission_callback' => '__return_true'],
+            ['methods' => 'DELETE', 'callback' => ['NF_Orders', 'delete_draft'], 'permission_callback' => '__return_true'],
+        ]);
+        register_rest_route('nf/v1', '/coupons/validate', ['methods' => 'POST', 'callback' => [__CLASS__, 'validate_coupon'], 'permission_callback' => '__return_true']);
+        register_rest_route('nf/v1', '/products/meta', ['methods' => 'POST', 'callback' => [__CLASS__, 'products_meta'], 'permission_callback' => '__return_true']);
         register_rest_route('nf/v1', '/reviews', [
             'methods'             => 'POST',
             'callback'            => [__CLASS__, 'create_review'],
@@ -78,6 +85,48 @@ class NF_REST {
         $res = new WP_REST_Response(['data' => $out]);
         $res->header('Cache-Control', 'public, max-age=60');
         return $res;
+    }
+
+    public static function validate_coupon(WP_REST_Request $req): WP_REST_Response {
+        if (!self::rate_limit('coupon-validate:' . self::client_ip(), 20, HOUR_IN_SECONDS)) {
+            return new WP_REST_Response(['error' => 'Too many requests.'], 429);
+        }
+        $b = $req->get_json_params() ?: [];
+        $code = $b['code'] ?? null;
+        $subtotal = $b['subtotal'] ?? null;
+        if (!$code || !is_string($code)) {
+            return new WP_REST_Response(['error' => 'Coupon code is required.'], 400);
+        }
+        if (!is_numeric($subtotal) || $subtotal < 0 || is_string($subtotal)) {
+            return new WP_REST_Response(['error' => 'Invalid subtotal.'], 400);
+        }
+        $r = NF_Coupons::validate($code, (float) $subtotal);
+        if (!$r['ok']) {
+            return new WP_REST_Response(['error' => $r['error']], $r['status']);
+        }
+        $c = $r['coupon'];
+        return new WP_REST_Response(['valid' => true, 'code' => $c['code'], 'type' => $c['type'], 'value' => $c['value'], 'discount' => $r['discount']]);
+    }
+
+    /** Colours and sizes for cart items that were added before this metadata existed. */
+    public static function products_meta(WP_REST_Request $req): WP_REST_Response {
+        $b = $req->get_json_params() ?: [];
+        $out = [];
+        foreach (array_slice((array) ($b['ids'] ?? []), 0, 50) as $id) {
+            if (!is_scalar($id) || !ctype_digit((string) $id)) {
+                continue;
+            }
+            $id = (int) $id;
+            if (get_post_type($id) !== 'product' || get_post_status($id) !== 'publish' || get_post_meta($id, '_stock_status', true) === 'outofstock') {
+                continue;
+            }
+            $out[] = [
+                'id'     => (string) $id,
+                'colors' => json_decode((string) get_post_meta($id, '_nf_colors', true), true) ?: [],
+                'sizes'  => json_decode((string) get_post_meta($id, '_nf_sizes', true), true) ?: [],
+            ];
+        }
+        return new WP_REST_Response(['data' => $out]);
     }
 
     public static function create_review(WP_REST_Request $req): WP_REST_Response {

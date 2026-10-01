@@ -18,10 +18,14 @@ define('NF_CMS_URL', plugin_dir_url(__FILE__));
 require_once NF_CMS_DIR . 'includes/class-db.php';
 require_once NF_CMS_DIR . 'includes/class-seed-reader.php';
 require_once NF_CMS_DIR . 'includes/class-media.php';
+require_once NF_CMS_DIR . 'includes/class-capi.php';
+require_once NF_CMS_DIR . 'includes/class-coupons.php';
+require_once NF_CMS_DIR . 'includes/class-orders.php';
 require_once NF_CMS_DIR . 'includes/class-importer.php';
 require_once NF_CMS_DIR . 'includes/class-rest.php';
 
 NF_DB::init();
+NF_Orders::init();
 NF_REST::init();
 
 if (defined('WP_CLI') && WP_CLI) {

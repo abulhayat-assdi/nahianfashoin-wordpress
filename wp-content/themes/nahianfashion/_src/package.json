@@ -1,0 +1,13 @@
+{
+  "name": "nahianfashion-theme-build",
+  "private": true,
+  "description": "Optional: rebuilds assets/css/app.css. The compiled file is committed, so servers never need this.",
+  "scripts": {
+    "build": "tailwindcss -i input.css -o ../assets/css/app.css --minify",
+    "watch": "tailwindcss -i input.css -o ../assets/css/app.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.2.4",
+    "tailwindcss": "4.2.4"
+  }
+}

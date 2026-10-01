@@ -20,11 +20,29 @@ class NF_REST {
         ]);
         register_rest_route('nf/v1', '/coupons/validate', ['methods' => 'POST', 'callback' => [__CLASS__, 'validate_coupon'], 'permission_callback' => '__return_true']);
         register_rest_route('nf/v1', '/products/meta', ['methods' => 'POST', 'callback' => [__CLASS__, 'products_meta'], 'permission_callback' => '__return_true']);
+        register_rest_route('nf/v1', '/admin/orders/send-to-courier', ['methods' => 'POST', 'callback' => [__CLASS__, 'send_to_courier'], 'permission_callback' => [__CLASS__, 'can_manage']]);
+        register_rest_route('nf/v1', '/admin/orders/check-ratio', ['methods' => 'POST', 'callback' => [__CLASS__, 'check_ratio'], 'permission_callback' => [__CLASS__, 'can_manage']]);
         register_rest_route('nf/v1', '/reviews', [
             'methods'             => 'POST',
             'callback'            => [__CLASS__, 'create_review'],
             'permission_callback' => '__return_true',
         ]);
+    }
+
+    /** Shop admins/managers (WordPress cookie + X-WP-Nonce). */
+    public static function can_manage(): bool {
+        return current_user_can('manage_woocommerce');
+    }
+
+    public static function send_to_courier(WP_REST_Request $req): WP_REST_Response {
+        $r = NF_Steadfast::send_to_courier($req->get_json_params() ?: []);
+        return new WP_REST_Response($r['body'], $r['status']);
+    }
+
+    public static function check_ratio(WP_REST_Request $req): WP_REST_Response {
+        $b = $req->get_json_params() ?: [];
+        $r = NF_Steadfast::check_ratio((string) ($b['phone'] ?? ''), ($b['force'] ?? false) === true);
+        return new WP_REST_Response($r['body'], $r['status']);
     }
 
     public static function client_ip(): string {

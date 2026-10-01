@@ -21,6 +21,7 @@ require_once NF_CMS_DIR . 'includes/class-media.php';
 require_once NF_CMS_DIR . 'includes/class-capi.php';
 require_once NF_CMS_DIR . 'includes/class-coupons.php';
 require_once NF_CMS_DIR . 'includes/class-orders.php';
+require_once NF_CMS_DIR . 'includes/class-steadfast.php';
 require_once NF_CMS_DIR . 'includes/class-importer.php';
 require_once NF_CMS_DIR . 'includes/class-rest.php';
 

@@ -17,7 +17,7 @@ class NF_CLI {
      * : Folder with pre-downloaded images (file name = URL path with "/" replaced by "__"). Missing files are downloaded from their URL.
      *
      * [--only=<steps>]
-     * : Comma-separated subset of: settings,footer,categories,pages,home,combos,testimonials,products,reviews,coupons. Default: all.
+     * : Comma-separated subset of: settings,footer,categories,pages,home,combos,testimonials,products,reviews,coupons,blocked,fraud_cache. Default: all.
      */
     public function import($args, $assoc) {
         $seed = new NF_Seed_Reader($assoc['seed']);
@@ -25,7 +25,7 @@ class NF_CLI {
             NF_Media::$local_dir = $assoc['images-dir'];
         }
         $imp = new NF_Importer($seed, static function ($m) { WP_CLI::log($m); });
-        $steps = isset($assoc['only']) ? array_map('trim', explode(',', $assoc['only'])) : ['settings', 'footer', 'categories', 'pages', 'home', 'combos', 'testimonials', 'products', 'reviews', 'coupons'];
+        $steps = isset($assoc['only']) ? array_map('trim', explode(',', $assoc['only'])) : ['settings', 'footer', 'categories', 'pages', 'home', 'combos', 'testimonials', 'products', 'reviews', 'coupons', 'blocked', 'fraud_cache'];
         foreach ($steps as $s) {
             if (!method_exists($imp, $s)) {
                 WP_CLI::warning("Unknown step: $s");

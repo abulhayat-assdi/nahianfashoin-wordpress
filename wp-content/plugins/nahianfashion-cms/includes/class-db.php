@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
  * Schema is versioned; dbDelta runs on activation and whenever the version changes.
  */
 class NF_DB {
-    const VERSION = '2';
+    const VERSION = '3';
 
     public static function init(): void {
         add_action('plugins_loaded', [__CLASS__, 'maybe_install']);
@@ -71,6 +71,33 @@ class NF_DB {
             PRIMARY KEY  (id),
             UNIQUE KEY value (value),
             KEY type (type)
+        ) $charset;");
+
+        $cache = self::table('steadfast_fraud_cache');
+        dbDelta("CREATE TABLE $cache (
+            phone varchar(20) NOT NULL,
+            found tinyint(1) NOT NULL DEFAULT 0,
+            total int(11) NOT NULL DEFAULT 0,
+            success int(11) NOT NULL DEFAULT 0,
+            cancel int(11) NOT NULL DEFAULT 0,
+            success_rate int(11) NOT NULL DEFAULT 0,
+            fraud_reports longtext NULL,
+            fetched_at datetime NOT NULL,
+            updated_at datetime NOT NULL,
+            PRIMARY KEY  (phone)
+        ) $charset;");
+
+        $state = self::table('steadfast_api_state');
+        dbDelta("CREATE TABLE $state (
+            id varchar(32) NOT NULL,
+            last_call_at datetime NULL,
+            cooldown_until datetime NULL,
+            window_start datetime NULL,
+            window_count int(11) NOT NULL DEFAULT 0,
+            day_start datetime NULL,
+            day_count int(11) NOT NULL DEFAULT 0,
+            updated_at datetime NOT NULL,
+            PRIMARY KEY  (id)
         ) $charset;");
 
         update_option('nf_db_version', self::VERSION, false);

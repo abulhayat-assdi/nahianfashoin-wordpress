@@ -146,6 +146,35 @@ class NF_Importer {
         $this->say("$n coupons imported.");
     }
 
+    public function blocked(): void {
+        global $wpdb;
+        $t = NF_DB::table('blocked_items');
+        $n = 0;
+        foreach ($this->seed->table('blocked_items') as $row) {
+            $wpdb->replace($t, [
+                'id' => $row['id'], 'type' => $row['type'], 'value' => $row['value'],
+                'reason' => $row['reason'] ?? 'No reason specified', 'created_at' => self::ts($row['created_at']),
+            ]);
+            $n++;
+        }
+        $this->say("$n blocked items imported.");
+    }
+
+    public function fraud_cache(): void {
+        global $wpdb;
+        $t = NF_DB::table('steadfast_fraud_cache');
+        $n = 0;
+        foreach ($this->seed->table('steadfast_fraud_cache') as $row) {
+            $wpdb->replace($t, [
+                'phone' => $row['phone'], 'found' => NF_Seed_Reader::bool($row['found']) ? 1 : 0, 'total' => (int) $row['total'],
+                'success' => (int) $row['success'], 'cancel' => (int) $row['cancel'], 'success_rate' => (int) $row['success_rate'],
+                'fraud_reports' => $row['fraud_reports'] ?? '[]', 'fetched_at' => self::ts($row['fetched_at']), 'updated_at' => self::ts($row['updated_at']),
+            ]);
+            $n++;
+        }
+        $this->say("$n fraud-cache rows imported.");
+    }
+
     private static function ts(?string $pg): string {
         $t = $pg ? strtotime($pg . ' UTC') : false;
         return gmdate('Y-m-d H:i:s', $t ?: time());

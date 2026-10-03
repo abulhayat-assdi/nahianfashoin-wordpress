@@ -232,7 +232,7 @@ class NF_Importer {
 
     private function row_reviews(array $row): void {
         $pids = get_posts(['post_type' => 'product', 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids', 'meta_key' => '_nf_legacy_id', 'meta_value' => $row['product_id']]);
-        if (!$pids || get_comments(['meta_key' => 'nf_legacy_id', 'meta_value' => $row['id'], 'number' => 1, 'fields' => 'ids'])) {
+        if (!$pids || get_comments(['meta_key' => 'nf_legacy_id', 'meta_value' => $row['id'], 'type' => 'review', 'number' => 1, 'fields' => 'ids'])) {
             return;
         }
         $date = self::ts($row['created_at']);
